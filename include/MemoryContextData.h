@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename:  MemoryContextData.h
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  2015年07月31日 11时14分50秒
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  zhangjian (), xiaojian_whu@163.com
- *        Company:  whu.sklse
- *
- * =====================================================================================
- */
 #ifndef MEMORYCONTEXTDATA_H
 #define MEMORYCONTEXTDATA_H
 
@@ -96,13 +79,13 @@ class MemoryContextData
 			return nextchild;
 		}
 	protected:
-		MemoryContextData(MemoryContextData* prt,string mName);
+		MemoryContextData(MemoryContextData * prt, string mName);
 		bool 	isReset;
 	private:
 		string	name;
-		MemoryContextData* 	parent;
-		MemoryContextData* 	firstchild;
-		MemoryContextData* 	nextchild;
+		MemoryContextData * 	parent;
+		MemoryContextData * 	firstchild;
+		MemoryContextData * 	nextchild;
 };
 
 #endif
