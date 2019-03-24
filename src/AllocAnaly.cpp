@@ -18,10 +18,7 @@ string	AllocAnaly::rowName[6] = {
 				"Hit Rate"
 			       };
 
-/**
- * 构造函数，获得最小的Chunk大小和allocChunkLimit，同时初始化类中的数组。
- *
- */
+// Constructor
 AllocAnaly::AllocAnaly(Size minChunkSize, Size allocChunkLimit)
 {
 	memset(this, 0, sizeof(AllocAnaly));
@@ -30,10 +27,7 @@ AllocAnaly::AllocAnaly(Size minChunkSize, Size allocChunkLimit)
 	freeListSize = AllocSetContext::AllocSetFreeIndex(allocChunkLimit);
 }
 
-/**记录一次内存分配行为，每次成功分配内存时调用
- *
- * @param size 内存分配的实际大小
- */
+// Record an allocation.
 void AllocAnaly::allocRecord(Size size)
 {
 	if(size > allocChunkLimit)
@@ -41,7 +35,7 @@ void AllocAnaly::allocRecord(Size size)
 		alloced[freeListSize + 1]++;
 	}else
 	{
-		/* 在对应的chunk大小中增加一次分配次数，迭加浪费的空间*/
+		// Accumulate the wasted size = chunk_size - size;
 		int tids = AllocSetContext::AllocSetFreeIndex(size);
 		Size chunk_size = minChunkSize << tids;
 		alloced[tids]++;
@@ -49,10 +43,7 @@ void AllocAnaly::allocRecord(Size size)
 	}
 }
 
-/**记录一次内存释放行为，每次成功释放内存时调用
- *
- * @param size 内存释放的实际大小
- */
+// Record a free operation.
 void AllocAnaly::freeRecord(Size size)
 {
 	if(size > allocChunkLimit)
@@ -65,10 +56,7 @@ void AllocAnaly::freeRecord(Size size)
 	}
 }
 
-/**重置数据，当内存上下文重置的时候调用。因为其它数据都是根据分配次数，释放次数，
- * 浪费空间大小计算而来，所以只需要重置这几个数据即可。
- *
- */
+// Reset the analytical info.
 void AllocAnaly::reset()
 {
 	memset(alloced, 0, sizeof(alloced));
@@ -76,9 +64,7 @@ void AllocAnaly::reset()
 	memset(freed, 0, sizeof(freed));
 }
 
-/**输出统计数据，因为数据在不断变化，表格大小随时在变，所以每次输出统计数据都计算一遍。
- *
- */
+// Output the stat info.
 void AllocAnaly::stat(int level)
 {
 	calculate();
@@ -143,9 +129,7 @@ void AllocAnaly::stat(int level)
 	row << endl;
 }
 
-/**计算表格中的数据，填充每一项。
- * 
- */
+// Compute the info of the stat table.
 void AllocAnaly::calculate()
 {
 	Size allocTotal = 0;
@@ -155,7 +139,6 @@ void AllocAnaly::calculate()
 	for(int i = 0; i <= freeListSize; ++i)
 		header[i] = minChunkSize << i;
 	
-	/* 算出分配，释放，浪费空间大小值的和 */
 	for(int i = 0; i <= (freeListSize + 1); ++i)
 	{
 		allocTotal += alloced[i];
@@ -164,13 +147,12 @@ void AllocAnaly::calculate()
 		alloced[i] == 0 ? avgWasted[i] = 0 : (avgWasted[i] = wasted[i] / alloced[i]);
 	}
 
-	/* 计算命中率 */
+	/* hitRate */
 	for(int i = 0; i <= freeListSize + 1; ++i)
 	{
 		alloced[i] == 0 ? hitRate[i] = 0 : (hitRate[i] = (double)alloced[i] / (double)allocTotal);
 	}
 
-	/* 初始化最后一列 */
 	Size end = freeListSize + 2;
 	alloced[end] = allocTotal;
 	wasted[end] = wastedTotal;
@@ -186,10 +168,8 @@ void AllocAnaly::calculate()
 	}
 }
 
-/**计算输出表格每一列的宽度，值为每一列数据的最大宽度，作为输出时表格宽度所用。
- *
- */
-void	AllocAnaly::setColumnLength()
+// Width
+void AllocAnaly::setColumnLength()
 {
 	initColumn();
 	for(int i = 0; i <= freeListSize + 2; ++i)
@@ -205,17 +185,13 @@ void	AllocAnaly::setColumnLength()
 		if(getLength(freed[i]) > column[i + 1])
 			column[i + 1] = getLength(freed[i]);
 		if(hitRate[i] > 0 && column[i + 1] < 4)
-			column[i + 1] = 4;	/* 命中率保留小数点后两位宽度为4*/
+			column[i + 1] = 4; // 2 digits for the hit rate **.**, so give it 4 units
 
 	}
 }
 
-/**初始化每一列表格的宽度，初始化值为表头宽度大小。
- *
- */
-void	AllocAnaly::initColumn()
+void AllocAnaly::initColumn()
 {
-	/* 根据表头数值大小初始化每一列 */
 	column[0] = 14;			/* average wasted */
 	column[freeListSize + 3] = 5; 	/* total */
 
@@ -223,12 +199,10 @@ void	AllocAnaly::initColumn()
 	{
 		column[i] = getLength(minChunkSize << (i - 1)) + 1;
 	}
-	column[freeListSize + 2] = column[freeListSize + 1] + 1; /* 多了一个 > 号*/
+	column[freeListSize + 2] = column[freeListSize + 1] + 1; 
 }
 
-/**获得一个数值的宽度
- *
- */
+// the length of a number, how many digits?
 int	AllocAnaly::getLength(Size value)
 {
 	int length = 0;
@@ -241,7 +215,7 @@ int	AllocAnaly::getLength(Size value)
 	return length == 0 ? 1 : length;
 }
 
-void	AllocAnaly::setAllocChunkLimit(Size allocChunkLimit)
+void AllocAnaly::setAllocChunkLimit(Size allocChunkLimit)
 {
 	this->allocChunkLimit = MAXALIGN(allocChunkLimit);
 	freeListSize = AllocSetContext::AllocSetFreeIndex(allocChunkLimit);

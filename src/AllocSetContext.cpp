@@ -149,10 +149,6 @@ void* AllocSetContext::jalloc(Size size)
 		if (availspace < (chunk_size + ALLOC_CHUNKHDRSZ))
 		{
 			/*
-			 * ����еĿռ䲻������ɴ˴η��䣬������Ҫ���������飬����
-			 * ��ǰ����п��ܴ���û��ʹ�õĿռ䣬����Щ�ռ����ӵ����������У�
-			 * �����ں���������ʹ�á�
-			 *
 			 * Because we can only get here when there's less than
 			 * ALLOC_CHUNK_LIMIT left in the block, this loop cannot iterate
 			 * more than ALLOCSET_NUM_FREELISTS-1 times.
@@ -189,10 +185,6 @@ void* AllocSetContext::jalloc(Size size)
 		}
 	}
 
-	/*
-	 * ����һ���µĻ��,ʹ��block�пձ���Ƿ���Ҫ����block��1�����Խ����乤���������ִ�У����۵�ǰ����Ƿ��á�
-	 *                                                                                                         2������Ƿ���ĵ�һ��block����Ҫ�ڴ˴����Ϊkeeper��
-	 */
 	if (block == NULL)
 	{
 		Size		required_size;
